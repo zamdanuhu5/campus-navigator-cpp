@@ -13,7 +13,8 @@
  *  navigation app would guide a student between buildings.
  * ============================================================
  */
-
+// Group 14
+// Section FCI6
 #include <iostream>
 #include <iomanip>
 #include <string>
