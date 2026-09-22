@@ -82,6 +82,8 @@ int readBuildingChoice(const string &label) {
 }
 
 // Returns a short navigation tip depending on the route
+// Tips are personalised per route, similar to the AI-personalised
+// routing feature described in Part 1's poster
 string getRouteTip(int from, int to) {
     if (from == to) {
         return "Tip: You are already there!";
