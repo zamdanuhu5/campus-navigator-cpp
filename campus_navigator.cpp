@@ -60,6 +60,7 @@ void displayBuildingMenu() {
 }
 
 // Reads and validates a building choice (1..NUM_BUILDINGS) from the user
+// Reject non-numeric input so the program doesn't crash or loop incorrectly
 int readBuildingChoice(const string &label) {
     int choice;
     while (true) {
