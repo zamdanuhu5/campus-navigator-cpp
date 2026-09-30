@@ -19,6 +19,7 @@
 #include <iomanip>
 #include <string>
 #include <limits>
+#include <cmath>
 
 using namespace std;
 
@@ -77,6 +78,7 @@ int readBuildingChoice(const string &label) {
             cout << "  Please choose a number between 1 and " << NUM_BUILDINGS << ".\n";
             continue;
         }
+        cin.ignore(numeric_limits<streamsize>::max(), '\n'); // discard leftover input like "3abc"
         return choice - 1; // convert to zero-based index
     }
 }
@@ -98,8 +100,39 @@ string getRouteTip(int from, int to) {
     }
 }
 
+// Asks for the route preference (personalised routing, as described in Part 1)
+// 1 = fastest route, 2 = avoid crowded areas (slightly longer)
+int readPreference() {
+    int pref;
+    while (true) {
+        cout << "Route preference (1 = Fastest, 2 = Avoid crowds): ";
+        cin >> pref;
+        if (cin.fail()) {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "  Invalid input. Please enter 1 or 2.\n";
+            continue;
+        }
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        if (pref == 1 || pref == 2) return pref;
+        cout << "  Please enter 1 or 2.\n";
+    }
+}
+
+// Asks the user whether to plan another route; only accepts y/n
+bool askAgain() {
+    string answer;
+    while (true) {
+        cout << "\nWould you like to plan another route? (y/n): ";
+        getline(cin, answer);
+        if (answer == "y" || answer == "Y") return true;
+        if (answer == "n" || answer == "N") return false;
+        cout << "  Please enter y or n.\n";
+    }
+}
+
 // Displays the computed route information
-void showRoute(int from, int to) {
+void showRoute(int from, int to, int preference) {
     if (from == to) {
         cout << "\nYou selected the same building for start and destination.\n";
         cout << getRouteTip(from, to) << endl;
@@ -107,16 +140,20 @@ void showRoute(int from, int to) {
     }
 
     int distance = distanceTable[from][to];
-    int minutes = (int)((distance + WALK_SPEED_M_PER_MIN - 1) / WALK_SPEED_M_PER_MIN);
+    // "Avoid crowds" detours through quieter paths: assume 20% longer
+    if (preference == 2) {
+        distance = (int)(distance * 1.2);
+    }
+    int minutes = (int)ceil(distance / WALK_SPEED_M_PER_MIN);
 
 
     cout << "\n========== Route Found ==========\n";
     cout << "From        : " << buildingNames[from] << endl;
     cout << "To          : " << buildingNames[to] << endl;
     cout << "Distance    : " << distance << " metres" << endl;
-    cout << fixed << setprecision(1);
+    cout << "Preference  : " << (preference == 1 ? "Fastest route" : "Avoid crowds (quieter path)") << endl;
     cout << "Est. Time   : " << minutes << " min (walking)" << endl;
-	cout << getRouteTip(from, to) << endl;
+    cout << getRouteTip(from, to) << endl;
     cout << "==================================\n";
 }
 
@@ -134,24 +171,20 @@ void showWelcome() {
 int main() {
     showWelcome();
 
-    char again = 'y';
-
     // Loop so the user can plan multiple trips without restarting the program
-    while (again == 'y' || again == 'Y') {
-    displayBuildingMenu();
+    do {
+        displayBuildingMenu();
 
-    int from = readBuildingChoice("Enter your CURRENT location");
-	int to   = readBuildingChoice("Enter your DESTINATION");
+        int from = readBuildingChoice("Enter your CURRENT location");
+        int to   = readBuildingChoice("Enter your DESTINATION");
+        int preference = 1;
+        if (from != to) {
+            preference = readPreference();
+        }
 
-
-    showRoute(from, to);
-
-        cout << "\nWould you like to plan another route? (y/n): ";
-        cin >> again;
-    }
+        showRoute(from, to, preference);
+    } while (askAgain());
 
     cout << "\nThank you for using Smart Campus Navigator. Safe travels!\n";
     return 0;
 }
-
-// Final review: verified all functions and formatting are consistent
